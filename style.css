@@ -29,6 +29,13 @@ nav {
   font-weight: 500;
 }
 
+.all-accounts-link {
+  position: absolute;
+  left: 400px;
+  text-decoration: none;
+  font-size: 1.5rem;
+}
+
 .logo {
   height: 5.25rem;
 }

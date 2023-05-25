@@ -1,5 +1,5 @@
 const account1 = {
-  owner: 'Jonas Schmedtmann',
+  owner: 'John Stainer',
   movements: [200, 450, -400, 3000, -650, -130, 70, 1300],
   interestRate: 1.2,
   pin: 1111,
@@ -28,17 +28,15 @@ const account4 = {
 
 const accounts = [account1, account2, account3, account4];
 
-(() => {
-  accounts.forEach((account) => {
-    const { owner } = account;
-    const normalizedName = owner.toLowerCase().split(' ');
-    account.username = normalizedName
-      .map((item) => {
-        return item[0];
-      })
-      .join('');
-  });
-})();
+accounts.forEach((account) => {
+  const { owner } = account;
+  const normalizedName = owner.toLowerCase().split(' ');
+  account.username = normalizedName
+    .map((item) => {
+      return item[0];
+    })
+    .join('');
+});
 
 const labelRefs = {
   labelWelcome: document.querySelector('.welcome'),
@@ -111,6 +109,7 @@ function onLogin(e) {
 
   if (currentUser?.pin === Number(inputLoginPin.value)) {
     containerApp.style.opacity = 1;
+
     updateAccount();
   }
 }
@@ -175,7 +174,7 @@ function makeTransfer(e) {
   e.preventDefault();
 
   const { inputTransferTo, inputTransferAmount } = inputRefs;
-  const { movements } = currentUser;
+  const { movements } = currentUser ?? [];
 
   const balance = movements.reduce((acc, item) => acc + item);
   const transferTo = accounts.find(
@@ -194,8 +193,9 @@ function makeTransfer(e) {
     alert("You don't have enough money");
   else if (Number(inputTransferAmount.value) < 0)
     alert('Only positive numbers');
-  else if (inputTransferAmount.value > 0)
+  else if (transferTo === currentUser)
     alert('You cannot transfer money to yourself');
+  else alert('User does not exist');
 }
 
 function updateAccount() {
@@ -206,6 +206,12 @@ function updateAccount() {
   inputRefs.inputLoanAmount.value = null;
   inputRefs.inputCloseUsername.value = null;
   inputRefs.inputClosePin.value = null;
+
+  const { labelWelcome } = labelRefs;
+
+  const { owner } = currentUser;
+
+  labelWelcome.innerHTML = `Welcome, ${owner.split(' ')[0]}`;
 
   createBalance(currentUser);
   createMovements(currentUser.movements);
@@ -232,6 +238,7 @@ function closeAccount(e) {
   e.preventDefault();
   const { inputCloseUsername } = inputRefs;
   const { inputClosePin } = inputRefs;
+  const { labelWelcome } = labelRefs;
 
   if (
     inputCloseUsername.value === currentUser.username &&
@@ -242,7 +249,9 @@ function closeAccount(e) {
     );
     accounts.splice(userToDelete, 1);
     containerRefs.containerApp.style.opacity = 0;
-  }
+    labelWelcome.innerHTML = 'Log in to get started';
+  } else if (inputCloseUsername.value !== currentUser.username)
+    alert('You can delete only your account');
 }
 
 function onSort({ movements }) {
