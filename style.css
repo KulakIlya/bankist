@@ -86,6 +86,10 @@ nav {
 
 /* MAIN */
 .app {
+  opacity: 1;
+  pointer-events: all;
+  visibility: visible;
+
   position: relative;
   max-width: 100rem;
   margin: 4rem auto;
@@ -94,8 +98,13 @@ nav {
   grid-template-rows: auto repeat(3, 15rem) auto;
   gap: 2rem;
 
-  opacity: 0;
   transition: all 1s;
+}
+
+.app.hidden {
+  opacity: 0;
+  pointer-events: none;
+  visibility: hidden;
 }
 
 .balance {

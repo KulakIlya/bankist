@@ -1,5 +1,3 @@
-// DIFFERENT DATA! Contains movement dates, currency and locale
-
 const account1 = {
   owner: 'Jonas Schmedtmann',
   movements: [200, 455.23, -306.5, 25000, -642.21, -133.9, 79.97, 1300],
@@ -51,7 +49,6 @@ const labelRefs = {
   labelWelcome: document.querySelector('.welcome'),
   labelDate: document.querySelector('.date'),
   labelBalance: document.querySelector('.balance__value'),
-
   labelTimer: document.querySelector('.timer'),
 };
 
@@ -99,6 +96,8 @@ let minutes;
 
 let currentUser;
 let isSorted = false;
+let timer;
+
 const { btnLogin, btnTransfer, btnLoan, btnClose, btnSort } = btnRefs;
 
 btnLogin.addEventListener('click', onLogin);
@@ -122,9 +121,15 @@ function onLogin(e) {
   );
 
   if (currentUser?.pin === Number(inputLoginPin.value)) {
-    containerApp.style.opacity = 1;
+    containerApp.classList.remove('hidden');
 
     updateAccount();
+
+    if (timer) {
+      clearInterval(timer);
+      labelRefs.labelTimer.textContent = '05:00';
+    }
+    timer = createLogoutTimer();
   }
 }
 
@@ -205,11 +210,15 @@ function createSummary({ movements, interestRate }) {
     containerSummary.insertAdjacentHTML(
       'afterbegin',
       `<p class="summary__label">In</p>
-        <p class="summary__value summary__value--in">${valueIn}€</p>
+        <p class="summary__value summary__value--in">${valueIn.toFixed(2)}€</p>
         <p class="summary__label">Out</p>
-        <p class="summary__value summary__value--out">${valueOut}€</p>
+        <p class="summary__value summary__value--out">${valueOut.toFixed(
+          2
+        )}€</p>
         <p class="summary__label">Interest</p>
-        <p class="summary__value summary__value--interest">${interest}€</p>
+        <p class="summary__value summary__value--interest">${interest.toFixed(
+          2
+        )}€</p>
         `
     );
   } else {
@@ -240,13 +249,15 @@ function makeTransfer(e) {
     transferTo.movements.push(Number(inputTransferAmount.value));
     transferTo.movementsDates.push(dateNow.toISOString());
     updateAccount();
-  } else if (balance <= Number(inputTransferAmount.value))
+  } else if (transferTo && balance <= Number(inputTransferAmount.value))
     alert("You don't have enough money");
   else if (Number(inputTransferAmount.value) < 0)
     alert('Only positive numbers');
   else if (transferTo === currentUser)
     alert('You cannot transfer money to yourself');
   else alert('User does not exist');
+
+  resetLogoutTimer();
 }
 
 function updateAccount() {
@@ -286,6 +297,8 @@ function createLoan(e) {
     updateAccount();
   } else if (Number(inputLoanAmount.value) < 0)
     alert('Write a positive number');
+
+  resetLogoutTimer();
 }
 
 function closeAccount(e) {
@@ -302,10 +315,12 @@ function closeAccount(e) {
       (account) => account.username === currentUser.username
     );
     accounts.splice(userToDelete, 1);
-    containerRefs.containerApp.style.opacity = 0;
+    containerRefs.containerApp.classList.add('hidden');
     labelWelcome.innerHTML = 'Log in to get started';
   } else if (inputCloseUsername.value !== currentUser.username)
     alert('You can delete only your account');
+  else alert('Wrong username or password');
+  resetLogoutTimer();
 }
 
 function onSort({ movements, movementsDates }) {
@@ -318,4 +333,27 @@ function onSort({ movements, movementsDates }) {
   } else createMovements(movements, movementsDates);
 
   isSorted = !isSorted;
+}
+
+function createLogoutTimer() {
+  let time = 300;
+
+  return setInterval(() => {
+    time -= 1;
+
+    const minutes = `${Math.trunc(time / 60)}`.padStart(2, 0);
+    const seconds = `${Math.trunc(time % 60)}`.padStart(2, 0);
+
+    if (time === 0) {
+      containerRefs.containerApp.classList.add('hidden');
+      clearInterval();
+    }
+
+    labelRefs.labelTimer.textContent = `${minutes}:${seconds}`;
+  }, 1000);
+}
+
+function resetLogoutTimer() {
+  clearInterval(timer);
+  timer = createLogoutTimer();
 }
